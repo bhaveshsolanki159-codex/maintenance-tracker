@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Maintenance Dashboard (Frontend Sandbox)</title>
+</head>
+<body>
+    <h1>Maintenance Dashboard (Sandbox)</h1>
+    <p>This is an isolated frontend view that does not affect existing pages.</p>
+
+    <table border="1" cellpadding="6" cellspacing="0">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Subject</th>
+                <th>Equipment</th>
+                <th>Team</th>
+                <th>Assigned Technician</th>
+                <th>Status</th>
+                <th>Scheduled Date</th>
+                <th>Duration</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for req in requests %}
+            <tr>
+                <td>{{ req.id }}</td>
+                <td>{{ req.subject }}</td>
+                <td>{{ req.equipment }}</td>
+                <td>{{ req.team }}</td>
+                <td>{{ req.assigned_technician }}</td>
+                <td>{{ req.status }}</td>
+                <td>{{ req.scheduled_date }}</td>
+                <td>{{ req.duration }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="8">No maintenance requests found.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

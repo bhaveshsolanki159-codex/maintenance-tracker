@@ -1,0 +1,49 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Maintenance Kanban</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+
+<h2 class="title">🛠️ Maintenance Kanban Board</h2>
+
+<div class="kanban-board">
+
+    {% for column, items in columns %}
+    <div class="kanban-column"
+         ondrop="drop(event)"
+         ondragover="allowDrop(event)"
+         data-status="{{ column }}">
+
+        <h3>{{ column }}</h3>
+
+        {% for req in items %}
+        <div class="kanban-card"
+             draggable="true"
+             ondragstart="drag(event)"
+             id="req-{{ req.id }}"
+             data-id="{{ req.id }}">
+
+            <strong>{{ req.subject }}</strong>
+            <p>⚙️ {{ req.equipment.name }}</p>
+
+            {% if req.assigned_technician %}
+                <span class="avatar">
+                    {{ req.assigned_technician.username|slice:":1"|upper }}
+                </span>
+            {% endif %}
+        </div>
+        {% empty %}
+            <p class="empty">No requests</p>
+        {% endfor %}
+
+    </div>
+    {% endfor %}
+
+</div>
+
+<script src="{% static 'kanban.js' %}"></script>
+</body>
+</html>
