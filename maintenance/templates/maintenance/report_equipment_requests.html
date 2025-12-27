@@ -1,0 +1,179 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Equipment Requests Report - GearGuard</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="{% static 'style.css' %}">
+  <style>
+    .reports-nav{display:flex;gap:8px;padding:12px;background:#f8fafc;border-bottom:1px solid #e2e8f0;flex-wrap:wrap}
+    .reports-nav a{padding:8px 12px;background:#fff;border:1px solid #cbd5e1;border-radius:4px;text-decoration:none;color:#0f172a;font-weight:500;cursor:pointer;font-size:14px}
+    .reports-nav a:hover,.reports-nav a.active{background:#0ea5e9;color:#fff;border-color:#0ea5e9}
+    .report-container{max-width:1200px;margin:20px auto;padding:20px}
+    .report-title{color:#0f172a;margin-bottom:20px}
+    .filter-bar{background:#f8fafc;padding:12px;border-radius:6px;margin-bottom:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
+    .filter-bar input,.filter-bar select{padding:8px;border:1px solid #cbd5e1;border-radius:4px;font-size:14px}
+    .filter-bar button{padding:8px 12px;background:#0ea5e9;color:#fff;border:none;border-radius:4px;cursor:pointer;font-weight:600}
+    .filter-bar button:hover{background:#0284c7}
+    .chart-container{background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:20px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+    .data-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}
+    .data-table th,.data-table td{padding:12px;text-align:left;border-bottom:1px solid #e2e8f0}
+    .data-table th{background:#f8fafc;font-weight:600;color:#0f172a}
+    .data-table tr:hover{background:#f8fafc}
+    .total-row{background:#eef2ff;font-weight:600;color:#3730a3}
+    .no-data{text-align:center;color:#94a3b8;padding:40px;font-style:italic}
+    .back-link{display:inline-block;margin-bottom:20px;color:#0ea5e9;text-decoration:none;font-weight:600}
+    .back-link:hover{text-decoration:underline}
+    .equipment-link{color:#0ea5e9;text-decoration:none}
+    .equipment-link:hover{text-decoration:underline}
+    .high-maint{background:#fef3c7;padding:2px 6px;border-radius:3px;font-weight:600;color:#b45309}
+  </style>
+</head>
+<body>
+  <div class="reports-nav">
+    <a href="/" class="back-link">← Home</a>
+    <a href="{% url 'maintenance:report_team_requests' %}">Team Requests</a>
+    <a href="{% url 'maintenance:report_equipment_requests' %}" class="active">Equipment Requests</a>
+    <a href="{% url 'maintenance:report_department_requests' %}">Department Requests</a>
+  </div>
+
+  <div class="report-container">
+    <h2 class="report-title">📊 Requests per Equipment (Top 20)</h2>
+    <p style="color:#64748b">Identifies high-maintenance assets requiring priority attention.</p>
+    
+    <!-- Filters -->
+    <div class="filter-bar">
+      <input type="date" id="date_from" placeholder="From Date" value="{{ date_from }}">
+      <input type="date" id="date_to" placeholder="To Date" value="{{ date_to }}">
+      <select id="department_filter">
+        <option value="">All Departments</option>
+        {% for dept in departments %}
+          <option value="{{ dept }}" {% if dept == department_filter %}selected{% endif %}>{{ dept }}</option>
+        {% endfor %}
+      </select>
+      <select id="status_filter">
+        <option value="">All Statuses</option>
+        {% for status in statuses %}
+          <option value="{{ status }}" {% if status == status_filter %}selected{% endif %}>{{ status }}</option>
+        {% endfor %}
+      </select>
+      <button onclick="applyFilters()">Apply Filters</button>
+    </div>
+
+    <!-- Chart -->
+    <div class="chart-container">
+      <h3>Visual Summary (Top Equipment by Request Count)</h3>
+      <canvas id="chart" width="900" height="400" style="max-width:100%;height:auto"></canvas>
+    </div>
+
+    <!-- Data Table -->
+    <div class="chart-container">
+      <h3>Detailed Data</h3>
+      {% if equipment_list %}
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Equipment Name</th>
+              <th style="text-align:right">Request Count</th>
+              <th style="text-align:right">% of Total</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for eq in equipment_list %}
+            <tr>
+              <td>
+                <a href="{% url 'equipment:detail' eq.id %}" class="equipment-link">{{ eq.name }}</a>
+              </td>
+              <td style="text-align:right">
+                <strong>{{ eq.count }}</strong>
+                {% if eq.count >= 5 %}<span class="high-maint">⚠️ HIGH</span>{% endif %}
+              </td>
+              <td style="text-align:right">{{ eq.count|add:0|multiply:100|divide:total|floatformat:1 }}%</td>
+              <td>Active</td>
+            </tr>
+            {% endfor %}
+            <tr class="total-row">
+              <td><strong>TOTAL</strong></td>
+              <td style="text-align:right">{{ total }}</td>
+              <td style="text-align:right">100%</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      {% else %}
+        <div class="no-data">No data available for the selected filters.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <script>
+    const chartCanvas = document.getElementById('chart');
+    const ctx = chartCanvas.getContext('2d');
+    const data = {{ equipment_list|safe }};
+
+    function drawChart(){
+      if(!data || data.length===0){ ctx.fillText('No data to display', 20, 20); return; }
+
+      const labels = data.slice(0,12).map(d => d.name);
+      const values = data.slice(0,12).map(d => d.count);
+      const maxVal = Math.max(...values) || 1;
+
+      const barWidth = 40;
+      const barHeight = chartCanvas.height * 0.7;
+      const startY = chartCanvas.height * 0.75;
+      const padding = 60;
+
+      ctx.clearRect(0,0,chartCanvas.width,chartCanvas.height);
+      ctx.fillStyle='#0f172a';
+      ctx.font='bold 14px sans-serif';
+
+      // Title
+      ctx.fillText('High-Maintenance Equipment',20,25);
+
+      labels.forEach((label,i) => {
+        const barX = padding + i*(barWidth+15);
+        const barH = (values[i]/maxVal)*barHeight;
+        const barY = startY-barH;
+
+        // Draw bar
+        ctx.fillStyle = values[i] >= 5 ? '#f59e0b' : '#0ea5e9';
+        ctx.fillRect(barX,barY,barWidth,barH);
+
+        // Draw value on bar
+        ctx.fillStyle='#fff';
+        ctx.font='bold 11px sans-serif';
+        ctx.textAlign='center';
+        if(barH > 30) ctx.fillText(values[i],barX+barWidth/2,barY+15);
+
+        // Draw label (vertical)
+        ctx.fillStyle='#0f172a';
+        ctx.font='11px sans-serif';
+        ctx.textAlign='center';
+        ctx.save();
+        ctx.translate(barX+barWidth/2,startY+5);
+        ctx.rotate(-Math.PI/5);
+        ctx.fillText(label.substring(0,12),0,0);
+        ctx.restore();
+      });
+    }
+
+    function applyFilters(){
+      const dateFrom = document.getElementById('date_from').value;
+      const dateTo = document.getElementById('date_to').value;
+      const dept = document.getElementById('department_filter').value;
+      const status = document.getElementById('status_filter').value;
+
+      let url = '{% url "maintenance:report_equipment_requests" %}?';
+      if(dateFrom) url += 'date_from=' + dateFrom + '&';
+      if(dateTo) url += 'date_to=' + dateTo + '&';
+      if(dept) url += 'department=' + dept + '&';
+      if(status) url += 'status=' + status + '&';
+
+      window.location.href = url;
+    }
+
+    window.addEventListener('load',()=>{ drawChart(); });
+  </script>
+</body>
+</html>

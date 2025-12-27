@@ -1,0 +1,25 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Preventive Maintenance Calendar</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="{% static 'style.css' %}">
+  <link rel="stylesheet" href="{% static 'calendar.css' %}">
+</head>
+<body>
+  <h2 class="title">📅 Preventive Maintenance Calendar</h2>
+
+  <div class="calendar-toolbar">
+    <button id="cal-prev" class="btn">◀</button>
+    <div id="cal-month" class="cal-month"></div>
+    <button id="cal-next" class="btn">▶</button>
+    <button id="cal-today" class="btn small">Today</button>
+  </div>
+
+  <div id="calendar-root" class="calendar-root"></div>
+  <div id="calendar-alert" class="calendar-alert" aria-live="polite"></div>
+
+  <script src="{% static 'calendar.js' %}"></script>
+</body>
+</html>

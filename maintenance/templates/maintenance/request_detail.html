@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance Request #{{ request.id }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/maintenance-form.css">
+    <style>
+        .request-detail {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .request-header {
+            background: linear-gradient(135deg, #20232b 0%, #1a1c24 100%);
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 5px solid #4fb3ff;
+        }
+        
+        .request-header h1 {
+            margin: 0 0 10px 0;
+            color: #4fb3ff;
+            font-size: 28px;
+        }
+        
+        .request-header p {
+            margin: 5px 0;
+            color: #b0b6c3;
+            font-size: 14px;
+        }
+        
+        .request-status {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+        
+        .status-new {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .status-in-progress {
+            background-color: #f59e0b;
+            color: white;
+        }
+        
+        .status-repaired {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .status-scrap {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .request-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .request-section {
+            background: #20232b;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #2d3139;
+        }
+        
+        .request-section h3 {
+            color: #4fb3ff;
+            margin: 0 0 15px 0;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .request-field {
+            margin-bottom: 15px;
+        }
+        
+        .request-field label {
+            color: #9ca3af;
+            font-size: 12px;
+            display: block;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        .request-field value {
+            color: #ffffff;
+            font-size: 15px;
+            display: block;
+        }
+        
+        .request-field .value-empty {
+            color: #6b7280;
+            font-style: italic;
+        }
+        
+        .actions-section {
+            background: #20232b;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #2d3139;
+            margin-bottom: 30px;
+        }
+        
+        .actions-section h3 {
+            color: #4fb3ff;
+            margin: 0 0 15px 0;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-primary {
+            background-color: #4fb3ff;
+            color: #050608;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background-color: #3fa8f5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 179, 255, 0.4);
+        }
+        
+        .btn-success {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover:not(:disabled) {
+            background-color: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .btn-danger:hover:not(:disabled) {
+            background-color: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .action-form {
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .action-form.active {
+            display: block;
+        }
+        
+        .action-form input {
+            padding: 8px 12px;
+            border: 1px solid #2d3139;
+            border-radius: 6px;
+            background: #0a0c0f;
+            color: #ffffff;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .action-form input:focus {
+            outline: none;
+            border-color: #4fb3ff;
+            box-shadow: 0 0 0 3px rgba(79, 179, 255, 0.1);
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert.active {
+            display: block;
+        }
+        
+        .alert-info {
+            background-color: #e0f2fe;
+            color: #0369a1;
+            border-left: 4px solid #0284c7;
+        }
+        
+        .alert-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #dc2626;
+        }
+        
+        .alert-success {
+            background-color: #dcfce7;
+            color: #166534;
+            border-left: 4px solid #16a34a;
+        }
+        
+        .role-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+            text-transform: uppercase;
+        }
+        
+        .role-manager {
+            background-color: #fecaca;
+            color: #991b1b;
+        }
+        
+        .role-technician {
+            background-color: #fbbf24;
+            color: #92400e;
+        }
+        
+        .role-user {
+            background-color: #d1d5db;
+            color: #374151;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .form-row.full {
+            grid-template-columns: 1fr;
+        }
+        
+        @media (max-width: 768px) {
+            .request-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body style="background: #0a0c0f;">
+    <div class="request-detail">
+        <!-- Header -->
+        <div class="request-header">
+            <h1>Request #{{ request.id }}: {{ request.subject }}</h1>
+            <p><strong>Equipment:</strong> {{ request.equipment.name }}</p>
+            <p><strong>Type:</strong> {{ request.get_request_type_display }}</p>
+            <p><strong>Created:</strong> {{ request.created_at|date:"F d, Y H:i" }} by {{ request.created_by.get_full_name }}</p>
+            
+            <span class="request-status status-{{ request.status|lower|add:'-progress'|cut:' ' }}">
+                {{ request.get_status_display }}
+            </span>
+            
+            <div style="margin-top: 15px; font-size: 13px;">
+                Your Role: <span class="role-badge role-{{ user_role }}">{{ user_role }}</span>
+            </div>
+        </div>
+        
+        <!-- Alerts -->
+        <div id="alert-container"></div>
+        
+        <!-- Main Content -->
+        <div class="request-grid">
+            <!-- Equipment Info -->
+            <div class="request-section">
+                <h3>Equipment Details</h3>
+                <div class="request-field">
+                    <label>Equipment Name</label>
+                    <value>{{ request.equipment.name }}</value>
+                </div>
+                <div class="request-field">
+                    <label>Serial Number</label>
+                    <value>{{ request.equipment.serial_number }}</value>
+                </div>
+                <div class="request-field">
+                    <label>Department</label>
+                    <value>{{ request.equipment.department }}</value>
+                </div>
+                <div class="request-field">
+                    <label>Location</label>
+                    <value>{{ request.equipment.location }}</value>
+                </div>
+            </div>
+            
+            <!-- Assignment Info -->
+            <div class="request-section">
+                <h3>Assignment</h3>
+                <div class="request-field">
+                    <label>Maintenance Team</label>
+                    <value>
+                        {% if request.assigned_team %}
+                            {{ request.assigned_team.name }} ({{ request.assigned_team.member_count }} members)
+                        {% else %}
+                            <span class="value-empty">Not assigned</span>
+                        {% endif %}
+                    </value>
+                </div>
+                <div class="request-field">
+                    <label>Assigned Technician</label>
+                    <value>
+                        {% if request.assigned_technician %}
+                            {{ request.assigned_technician.get_full_name }}
+                        {% else %}
+                            <span class="value-empty">Not assigned</span>
+                        {% endif %}
+                    </value>
+                </div>
+                <div class="request-field">
+                    <label>Warranty Status</label>
+                    <value>
+                        {% if request.equipment.is_under_warranty %}
+                            <span style="color: #10b981;">Under Warranty</span>
+                        {% else %}
+                            <span style="color: #ef4444;">Out of Warranty</span>
+                        {% endif %}
+                    </value>
+                </div>
+            </div>
+            
+            <!-- Scheduling Info -->
+            <div class="request-section">
+                <h3>Schedule</h3>
+                <div class="request-field">
+                    <label>Scheduled Date</label>
+                    <value>
+                        {% if request.scheduled_date %}
+                            {{ request.scheduled_date|date:"F d, Y" }}
+                        {% else %}
+                            <span class="value-empty">Not scheduled</span>
+                        {% endif %}
+                    </value>
+                </div>
+                <div class="request-field">
+                    <label>Due Date</label>
+                    <value>
+                        {% if request.due_date %}
+                            {{ request.due_date|date:"F d, Y" }}
+                            {% if request.is_overdue %}<span style="color: #ef4444;"> (OVERDUE)</span>{% endif %}
+                        {% else %}
+                            <span class="value-empty">No due date</span>
+                        {% endif %}
+                    </value>
+                </div>
+                <div class="request-field">
+                    <label>Duration (Hours)</label>
+                    <value>
+                        {% if request.duration %}
+                            {{ request.duration }} hours
+                        {% else %}
+                            <span class="value-empty">Not recorded</span>
+                        {% endif %}
+                    </value>
+                </div>
+            </div>
+            
+            <!-- Request Status -->
+            <div class="request-section">
+                <h3>Status Timeline</h3>
+                <div class="request-field">
+                    <label>Current Status</label>
+                    <value>{{ request.get_status_display }}</value>
+                </div>
+                <div class="request-field">
+                    <label>Created</label>
+                    <value>{{ request.created_at|date:"M d, Y H:i" }}</value>
+                </div>
+                <div class="request-field">
+                    <label>Last Updated</label>
+                    <value>{{ request.updated_at|date:"M d, Y H:i" }}</value>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Workflow Actions -->
+        <div class="actions-section">
+            <h3>Workflow Actions</h3>
+            <div class="action-buttons">
+                <!-- Assign Technician Button -->
+                <button id="btn-assign" class="btn btn-primary" onclick="showAssignForm()">
+                    Assign Technician
+                </button>
+                
+                <!-- Start Work Button -->
+                <button id="btn-start" class="btn btn-primary" onclick="startWork()">
+                    Start Work
+                </button>
+                
+                <!-- Complete Work Button -->
+                <button id="btn-complete" class="btn btn-success" onclick="showCompleteForm()">
+                    Complete Work
+                </button>
+                
+                <!-- Scrap Request Button -->
+                <button id="btn-scrap" class="btn btn-danger" onclick="scrapRequest()">
+                    Mark as Scrap
+                </button>
+            </div>
+            
+            <!-- Assign Technician Form -->
+            <div id="assign-form" class="action-form">
+                <label style="color: #9ca3af; display: block; margin-bottom: 10px;">Select Technician from {{ request.assigned_team.name }}:</label>
+                <div class="form-row full">
+                    <select id="technician-select" style="padding: 8px 12px; border: 1px solid #2d3139; border-radius: 6px; background: #0a0c0f; color: #ffffff;">
+                        <option value="">-- Select Technician --</option>
+                        {% for tech in available_technicians %}
+                            <option value="{{ tech.id }}">{{ tech.get_full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-row">
+                    <button class="btn btn-primary" onclick="assignTechnician()">Confirm Assignment</button>
+                    <button class="btn" style="background: #6b7280; color: #fff;" onclick="hideAssignForm()">Cancel</button>
+                </div>
+            </div>
+            
+            <!-- Complete Work Form -->
+            <div id="complete-form" class="action-form">
+                <label style="color: #9ca3af; display: block; margin-bottom: 10px;">Hours spent on this maintenance:</label>
+                <div class="form-row">
+                    <input type="number" id="duration-input" placeholder="e.g., 2.5" step="0.5" min="0.5" style="flex: 1;">
+                    <button class="btn btn-success" onclick="completeWork()">Record & Complete</button>
+                    <button class="btn" style="background: #6b7280; color: #fff;" onclick="hideCompleteForm()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const REQUEST_ID = {{ request.id }};
+        const CSRF_TOKEN = '{{ csrf_token }}';
+        
+        // Initialize: Fetch available actions and update UI
+        document.addEventListener('DOMContentLoaded', () => {
+            loadActions();
+        });
+        
+        function loadActions() {
+            fetch(`/maintenance/api/request-actions/?request_id=${REQUEST_ID}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        updateActionButtons(data.actions);
+                    }
+                })
+                .catch(err => console.error('Failed to load actions:', err));
+        }
+        
+        function updateActionButtons(actions) {
+            document.getElementById('btn-assign').disabled = !actions.can_assign;
+            document.getElementById('btn-start').disabled = !actions.can_start;
+            document.getElementById('btn-complete').disabled = !actions.can_complete;
+            document.getElementById('btn-scrap').disabled = !actions.can_scrap;
+        }
+        
+        function showAssignForm() {
+            document.getElementById('assign-form').classList.add('active');
+        }
+        
+        function hideAssignForm() {
+            document.getElementById('assign-form').classList.remove('active');
+        }
+        
+        function showCompleteForm() {
+            document.getElementById('complete-form').classList.add('active');
+        }
+        
+        function hideCompleteForm() {
+            document.getElementById('complete-form').classList.remove('active');
+        }
+        
+        function assignTechnician() {
+            const technicianId = document.getElementById('technician-select').value;
+            if (!technicianId) {
+                showAlert('Please select a technician', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('request_id', REQUEST_ID);
+            formData.append('technician_id', technicianId);
+            formData.append('csrfmiddlewaretoken', CSRF_TOKEN);
+            
+            fetch('/maintenance/api/assign-technician/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(`Assigned to ${data.technician}`, 'success');
+                    hideAssignForm();
+                    setTimeout(loadActions, 500);
+                } else {
+                    showAlert(data.error || 'Failed to assign', 'error');
+                }
+            })
+            .catch(err => showAlert('Error: ' + err.message, 'error'));
+        }
+        
+        function startWork() {
+            const formData = new FormData();
+            formData.append('request_id', REQUEST_ID);
+            formData.append('csrfmiddlewaretoken', CSRF_TOKEN);
+            
+            fetch('/maintenance/api/start-work/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    setTimeout(() => location.reload(), 500);
+                } else {
+                    showAlert(data.error || 'Failed to start work', 'error');
+                }
+            })
+            .catch(err => showAlert('Error: ' + err.message, 'error'));
+        }
+        
+        function completeWork() {
+            const duration = document.getElementById('duration-input').value;
+            if (!duration) {
+                showAlert('Please enter duration in hours', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('request_id', REQUEST_ID);
+            formData.append('duration_hours', duration);
+            formData.append('csrfmiddlewaretoken', CSRF_TOKEN);
+            
+            fetch('/maintenance/api/complete-work/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(`Work completed! (${data.duration} hours)`, 'success');
+                    hideCompleteForm();
+                    setTimeout(() => location.reload(), 500);
+                } else {
+                    showAlert(data.error || 'Failed to complete work', 'error');
+                }
+            })
+            .catch(err => showAlert('Error: ' + err.message, 'error'));
+        }
+        
+        function scrapRequest() {
+            if (!confirm('Are you sure? This will mark the request as scrapped (terminal state).')) {
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('request_id', REQUEST_ID);
+            formData.append('csrfmiddlewaretoken', CSRF_TOKEN);
+            
+            fetch('/maintenance/api/scrap-request/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Request marked as scrapped', 'success');
+                    setTimeout(() => location.reload(), 500);
+                } else {
+                    showAlert(data.error || 'Failed to scrap request', 'error');
+                }
+            })
+            .catch(err => showAlert('Error: ' + err.message, 'error'));
+        }
+        
+        function showAlert(message, type) {
+            const container = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            alert.className = `alert active alert-${type}`;
+            alert.textContent = message;
+            container.innerHTML = '';
+            container.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.classList.remove('active');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

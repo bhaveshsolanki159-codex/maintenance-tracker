@@ -1,0 +1,98 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #050608;
+    color: #f5f5f5;
+}
+
+.auth-wrapper {
+    width: 100%;
+    max-width: 480px;
+    padding: 40px 30px;
+    border-radius: 24px;
+    border: 1px solid #444;
+    background: radial-gradient(circle at top left, #20232b, #050608);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+}
+
+.panel-title {
+    text-align: center;
+    font-size: 1.7rem;
+    margin-bottom: 28px;
+    letter-spacing: 0.05em;
+}
+
+.field {
+    margin-bottom: 18px;
+}
+
+.field label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+}
+
+.field input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 999px;
+    border: 1px solid #555;
+    background: transparent;
+    color: #f5f5f5;
+    outline: none;
+}
+
+.field input:focus {
+    border-color: #6b8cff;
+    box-shadow: 0 0 0 1px #6b8cff33;
+}
+
+.btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 26px;
+    border-radius: 999px;
+    border: 1px solid #888;
+    background: #f5f5f5;
+    color: #111;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s ease-in-out;
+}
+
+.btn:hover {
+    background: #111;
+    color: #f5f5f5;
+    border-color: #f5f5f5;
+}
+
+.link-row {
+    margin-top: 14px;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.link-row a {
+    color: #4fb3ff;
+    text-decoration: none;
+}
+
+.link-row a:hover {
+    text-decoration: underline;
+}
+
+.hint {
+    margin-top: 16px;
+    font-size: 0.8rem;
+    color: #c5c5c5;
+    line-height: 1.4;
+}

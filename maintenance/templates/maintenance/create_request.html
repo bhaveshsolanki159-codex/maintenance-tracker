@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Maintenance Request - GearGuard</title>
+    <link rel="stylesheet" href="{% static 'maintenance-form.css' %}">
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-header">
+            <h1>Create Maintenance Request</h1>
+            <p class="subtitle">Intelligent auto-fill: Select equipment and related data appears automatically</p>
+        </div>
+
+        {% if error %}
+        <div class="alert alert-error">
+            <strong>Error:</strong> {{ error }}
+        </div>
+        {% endif %}
+
+        <form id="maintenanceForm" method="POST" action="{% url 'maintenance:create_request' %}">
+            {% csrf_token %}
+
+            <div class="form-section">
+                <h2>Select Equipment</h2>
+                
+                <div class="form-group">
+                    <label for="equipment">Equipment <span class="required">*</span></label>
+                    <select 
+                        id="equipment" 
+                        name="equipment" 
+                        required 
+                        class="input-field"
+                        aria-label="Select equipment"
+                    >
+                        <option value="">-- Select Equipment --</option>
+                        {% for eq in equipments %}
+                        <option value="{{ eq.id }}">
+                            {{ eq.name }} (SN: {{ eq.serial_number }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <div class="field-hint">Choose the equipment requiring maintenance</div>
+                </div>
+            </div>
+
+            <!-- Auto-filled Equipment Details Section -->
+            <div class="form-section" id="equipmentDetailsSection" style="display: none;">
+                <h2>Equipment Details <span class="auto-filled-badge">Auto-filled</span></h2>
+
+                <div class="form-group">
+                    <label for="department">Department</label>
+                    <input 
+                        type="text" 
+                        id="department" 
+                        name="department" 
+                        readonly 
+                        class="input-field input-readonly"
+                        placeholder="Department will appear here"
+                    >
+                    <div class="field-hint">Automatically populated from equipment</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="warrantyStatus">Warranty Status</label>
+                    <input 
+                        type="text" 
+                        id="warrantyStatus" 
+                        name="warranty_status" 
+                        readonly 
+                        class="input-field input-readonly"
+                        placeholder="Warranty status"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="maintenanceTeam">Maintenance Team</label>
+                    <div class="team-display">
+                        <span id="teamName" class="team-name">--</span>
+                        <span id="teamMembers" class="team-members"></span>
+                    </div>
+                    <input 
+                        type="hidden" 
+                        id="maintenanceTeamId" 
+                        name="maintenance_team"
+                    >
+                    <div class="field-hint" id="teamHint">Assigned team based on equipment default</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="defaultTechnician">Default Technician</label>
+                    <div id="technicianDisplay" class="technician-display">
+                        <span id="technicianName">No default technician assigned</span>
+                    </div>
+                    <input 
+                        type="hidden" 
+                        id="defaultTechnicianId" 
+                        name="assigned_technician"
+                    >
+                </div>
+            </div>
+
+            <!-- Request Details Section -->
+            <div class="form-section">
+                <h2>Request Details</h2>
+
+                <div class="form-group">
+                    <label for="requestType">Request Type <span class="required">*</span></label>
+                    <select 
+                        id="requestType" 
+                        name="request_type" 
+                        required 
+                        class="input-field"
+                    >
+                        <option value="Corrective">Corrective (Emergency/Unplanned)</option>
+                        <option value="Preventive">Preventive (Scheduled Maintenance)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="subject">Subject <span class="required">*</span></label>
+                    <textarea 
+                        id="subject" 
+                        name="subject" 
+                        required 
+                        class="input-field"
+                        rows="4"
+                        placeholder="Describe the issue or maintenance task"
+                    ></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="scheduledDate">Scheduled Date (for Preventive)</label>
+                        <input 
+                            type="date" 
+                            id="scheduledDate" 
+                            name="scheduled_date" 
+                            class="input-field"
+                        >
+                        <div class="field-hint">When should maintenance be performed?</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dueDate">Due Date</label>
+                        <input 
+                            type="date" 
+                            id="dueDate" 
+                            name="due_date" 
+                            class="input-field"
+                        >
+                        <div class="field-hint">Target completion date</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="duration">Estimated Duration (hours)</label>
+                    <input 
+                        type="number" 
+                        id="duration" 
+                        name="duration" 
+                        step="0.5"
+                        min="0"
+                        class="input-field"
+                        placeholder="e.g., 2.5"
+                    >
+                </div>
+            </div>
+
+            <!-- Loading and Error States -->
+            <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                <div class="spinner"></div>
+                <p>Fetching equipment details...</p>
+            </div>
+
+            <div id="errorAlert" class="alert alert-error" style="display: none;">
+                <strong>Error:</strong> <span id="errorMessage"></span>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    Create Request
+                </button>
+                <a href="{% url 'maintenance:kanban' %}" class="btn btn-secondary">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script src="{% static 'autofill.js' %}"></script>
+</body>
+</html>

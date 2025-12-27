@@ -1,0 +1,70 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ equipment.name }} - Maintenance Requests</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="{% static 'style.css' %}">
+  <style>
+    .maint-list{max-width:1000px;margin:20px auto;padding:20px}
+    .maint-list h2{color:#0f172a;margin-top:0}
+    .request-item{background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:16px;margin:12px 0;display:grid;grid-template-columns:1fr 150px;gap:16px;align-items:start}
+    .req-info h3{margin:0 0 8px 0;color:#0f172a}
+    .req-status{display:inline-block;padding:4px 8px;border-radius:4px;font-weight:600;font-size:12px}
+    .req-status.new{background:#dbeafe;color:#1e40af}
+    .req-status.progress{background:#fef3c7;color:#b45309}
+    .req-status.repaired{background:#dcfce7;color:#166534}
+    .req-status.scrap{background:#fee2e2;color:#b91c1c}
+    .req-meta{color:#64748b;font-size:12px;margin:8px 0}
+    .btn-view{padding:8px 12px;background:#0ea5e9;color:#fff;text-decoration:none;border-radius:4px;font-size:12px;text-align:center;cursor:pointer;border:none}
+    .btn-view:hover{background:#0284c7}
+    .empty{text-align:center;color:#94a3b8;padding:40px}
+    .warning{background:#fef3c7;border-left:4px solid #f59e0b;padding:12px;margin:12px 0;border-radius:4px}
+  </style>
+</head>
+<body>
+  <div class="maint-list">
+    <h2>⚙️ {{ equipment.name }} - Maintenance Requests</h2>
+
+    {% if equipment.is_scrapped %}
+    <div class="warning">
+      <strong>⚠️ This equipment is SCRAPPED.</strong> No new requests can be created.
+    </div>
+    {% endif %}
+
+    {% if requests %}
+      {% for req in requests %}
+      <div class="request-item">
+        <div class="req-info">
+          <h3>{{ req.subject }}</h3>
+          <span class="req-status {% if req.status == 'New' %}new{% elif req.status == 'In Progress' %}progress{% elif req.status == 'Repaired' %}repaired{% elif req.status == 'Scrap' %}scrap{% endif %}">
+            {{ req.get_status_display }}
+          </span>
+          <div class="req-meta">
+            <div>📋 Type: {{ req.get_request_type_display }}</div>
+            {% if req.assigned_technician %}
+            <div>👨 Technician: {{ req.assigned_technician.get_full_name }}</div>
+            {% endif %}
+            {% if req.scheduled_date %}
+            <div>📅 Scheduled: {{ req.scheduled_date|date:"M d, Y" }}</div>
+            {% endif %}
+            <div>📝 Created: {{ req.created_at|date:"M d, Y" }}</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <a href="{% url 'maintenance:request_detail' req.id %}" class="btn-view">View Details</a>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty">
+        <p>No maintenance requests for this equipment yet.</p>
+      </div>
+    {% endif %}
+
+    <div style="margin-top:20px">
+      <a href="{% url 'equipment:detail' equipment.id %}" class="btn-view" style="display:inline-block;background:#64748b">← Back to Equipment</a>
+    </div>
+  </div>
+</body>
+</html>

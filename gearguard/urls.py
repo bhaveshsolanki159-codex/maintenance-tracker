@@ -22,8 +22,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # Isolated frontend sandbox mounted under /ui/
     path('',views.home, name='home'),
-    path('about/',views.about, name='about'),
-    path('contact/',views.contact, name='contact'),
+    path('accounts/login/', views.login_view, name='login'),
+    path('accounts/logout/', views.logout_view, name='logout'),
+    path('accounts/signup/', views.signup_view, name='signup'),
+    path('equipment/', include('equipment.urls')),
     path('maintenance/', include('maintenance.urls')), 
 
 ]

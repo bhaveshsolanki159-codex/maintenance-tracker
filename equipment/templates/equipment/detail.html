@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Equipment Detail</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="{% static 'style.css' %}">
+  <style>
+    .eq-detail{max-width:800px;margin:20px auto;padding:20px;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+    .eq-detail h2{margin-top:0;color:#0f172a}
+    .eq-field{display:grid;grid-template-columns:200px 1fr;gap:16px;margin:12px 0;padding:12px 0;border-bottom:1px solid #e2e8f0}
+    .eq-field label{font-weight:600;color:#475569}
+    .eq-field value{color:#0f172a}
+    .eq-status{padding:8px 12px;border-radius:6px;display:inline-block;font-weight:600}
+    .eq-status.active{background:#dcfce7;color:#166534}
+    .eq-status.scrapped{background:#fee2e2;color:#b91c1c}
+    .eq-badge{display:inline-block;background:#0ea5e9;color:#fff;padding:4px 8px;border-radius:12px;font-size:12px;margin-left:8px}
+    .btn-action{display:inline-block;padding:10px 16px;margin-top:20px;margin-right:8px;background:#0ea5e9;color:#fff;border-radius:6px;cursor:pointer;text-decoration:none;border:none}
+    .btn-action:hover{background:#0284c7}
+    .btn-secondary{background:#64748b;color:#fff}
+    .btn-secondary:hover{background:#475569}
+    .warning{background:#fef3c7;border-left:4px solid #f59e0b;padding:12px;margin:12px 0;border-radius:4px}
+    .warning strong{color:#d97706}
+  </style>
+</head>
+<body>
+  <div class="eq-detail">
+    <h2>⚙️ {{ equipment.name }}</h2>
+
+    {% if equipment.is_scrapped %}
+    <div class="warning">
+      <strong>⚠️ This equipment is marked as SCRAPPED.</strong>
+      No new maintenance requests can be created for this equipment.
+    </div>
+    {% endif %}
+
+    <div class="eq-field">
+      <label>Status</label>
+      <div>
+        <span class="eq-status {% if equipment.is_scrapped %}scrapped{% else %}active{% endif %}">
+          {% if equipment.is_scrapped %}🔴 SCRAPPED{% else %}✅ ACTIVE{% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="eq-field">
+      <label>Serial Number</label>
+      <value>{{ equipment.serial_number }}</value>
+    </div>
+
+    <div class="eq-field">
+      <label>Department</label>
+      <value>{{ equipment.department }}</value>
+    </div>
+
+    <div class="eq-field">
+      <label>Location</label>
+      <value>{{ equipment.location }}</value>
+    </div>
+
+    <div class="eq-field">
+      <label>Assigned Employee</label>
+      <value>{{ equipment.assigned_employee.get_full_name|default:"—" }}</value>
+    </div>
+
+    <div class="eq-field">
+      <label>Default Team</label>
+      <value>{{ equipment.default_maintenance_team.name|default:"—" }}</value>
+    </div>
+
+    <div class="eq-field">
+      <label>Default Technician</label>
+      <value>{{ equipment.default_technician.get_full_name|default:"—" }}</value>
+    </div>
+
+    <div class="eq-field">
+      <label>Purchase Date</label>
+      <value>{{ equipment.purchase_date|date:"M d, Y" }}</value>
+    </div>
+
+    <div class="eq-field">
+      <label>Warranty Status</label>
+      <value>
+        {% if equipment.is_under_warranty %}
+          <span style="color:#166534">✅ Under Warranty (expires {{ equipment.warranty_expiry_date|date:"M d, Y" }})</span>
+        {% else %}
+          <span style="color:#7c3aed">⏰ Out of Warranty</span>
+        {% endif %}
+      </value>
+    </div>
+
+    <div class="eq-field">
+      <label>Maintenance Requests</label>
+      <div>
+        <a href="{% url 'equipment:maintenance_list' equipment.id %}" class="btn-action">
+          📋 Maintenance
+          {% if open_count > 0 %}
+            <span class="eq-badge">{{ open_count }} OPEN</span>
+          {% endif %}
+        </a>
+      </div>
+    </div>
+
+    <div style="margin-top:20px">
+      <a href="/" class="btn-secondary" style="display:inline-block;padding:10px 16px;background:#64748b;color:#fff;border-radius:6px;text-decoration:none">← Back</a>
+    </div>
+  </div>
+</body>
+</html>

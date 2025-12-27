@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Maintenance Tracker</title>
+    <link rel="stylesheet" href="{% static 'signup.css' %}">
+</head>
+<body>
+    <div class="auth-wrapper">
+        <div class="panel-title">Sign Up Page</div>
+        {% if messages %}
+        <ul style="color: #ff7b7b; margin-bottom: 12px; list-style: none;">
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <form method="post" action="{% url 'signup' %}">
+            {% csrf_token %}
+            <div class="field">
+                <label for="signup-name">Name</label>
+                <input type="text" id="signup-name" name="username" required>
+            </div>
+            <div class="field">
+                <label for="signup-email">Email ID</label>
+                <input type="email" id="signup-email" name="email" required>
+            </div>
+            <div class="field">
+                <label for="signup-password">Password</label>
+                <input type="password" id="signup-password" name="password1" required>
+            </div>
+            <div class="field">
+                <label for="signup-password2">Re-enter Password</label>
+                <input type="password" id="signup-password2" name="password2" required>
+            </div>
+            <button type="submit" class="btn">Sign Up</button>
+
+            <div class="link-row">
+                Already have an account?
+                <a href="{% url 'login' %}">Log in</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
